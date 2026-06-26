@@ -35,7 +35,7 @@ export default function AuthPage() {
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', background:'var(--bg)' }}>
       <div style={{ width:'100%', maxWidth:'420px' }}>
         <div style={{ textAlign:'center', marginBottom:'32px' }}>
-          <Link to="/"><img src="/logo.png" alt="Ascend90" style={{ height:'44px', objectFit:'contain' }} /></Link>
+          <Link to="/"><img src="/logo.png" alt="Ascend90" style={{ height:'90px', objectFit:'contain' }} /></Link>
           <p style={{ color:'var(--text2)', marginTop:'8px', fontSize:'15px' }}>
             {mode === 'login' ? 'Welcome back. Keep moving.' : 'Start your 90-day transformation.'}
           </p>

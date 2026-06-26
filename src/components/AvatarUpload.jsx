@@ -4,35 +4,39 @@ import { supabase } from '../lib/supabase.js'
 export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
   const [uploading, setUploading] = useState(false)
   const [cropMode, setCropMode] = useState(false)
-  const [imgSrc, setImgSrc] = useState(null)
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [localUrl, setLocalUrl] = useState(currentUrl)
   const fileRef = useRef()
-  const previewCanvasRef = useRef()
-  const imgObjRef = useRef(null)
+  const canvasRef = useRef()
+  const imgRef = useRef(null)
   const CROP_SIZE = 220
+
+  useEffect(() => { setLocalUrl(currentUrl) }, [currentUrl])
 
   function handleFileSelect(e) {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
     reader.onload = ev => {
-      setImgSrc(ev.target.result)
-      setZoom(1)
-      setOffset({ x: 0, y: 0 })
-      setCropMode(true)
       const img = new Image()
-      img.onload = () => { imgObjRef.current = img; drawPreview(img, 1, { x: 0, y: 0 }) }
+      img.onload = () => {
+        imgRef.current = img
+        setZoom(1)
+        setOffset({ x: 0, y: 0 })
+        setCropMode(true)
+        setTimeout(() => draw(img, 1, { x: 0, y: 0 }), 50)
+      }
       img.src = ev.target.result
     }
     reader.readAsDataURL(file)
     e.target.value = ''
   }
 
-  function drawPreview(img, z, off) {
-    const canvas = previewCanvasRef.current
+  function draw(img, z, off) {
+    const canvas = canvasRef.current
     if (!canvas || !img) return
     const ctx = canvas.getContext('2d')
     canvas.width = CROP_SIZE
@@ -42,7 +46,8 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
     ctx.beginPath()
     ctx.arc(CROP_SIZE / 2, CROP_SIZE / 2, CROP_SIZE / 2, 0, Math.PI * 2)
     ctx.clip()
-    const scale = Math.max(CROP_SIZE / img.width, CROP_SIZE / img.height) * z
+    const baseScale = Math.max(CROP_SIZE / img.width, CROP_SIZE / img.height)
+    const scale = baseScale * z
     const w = img.width * scale
     const h = img.height * scale
     const x = (CROP_SIZE - w) / 2 + off.x
@@ -52,29 +57,24 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
   }
 
   useEffect(() => {
-    if (imgObjRef.current) drawPreview(imgObjRef.current, zoom, offset)
-  }, [zoom, offset])
+    if (cropMode && imgRef.current) draw(imgRef.current, zoom, offset)
+  }, [zoom, offset, cropMode])
 
   function onMouseDown(e) {
     e.preventDefault()
     setDragging(true)
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y })
   }
-
   function onMouseMove(e) {
     if (!dragging) return
-    const newOff = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }
-    setOffset(newOff)
+    setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
   }
-
   function onMouseUp() { setDragging(false) }
-
   function onTouchStart(e) {
     const t = e.touches[0]
     setDragging(true)
     setDragStart({ x: t.clientX - offset.x, y: t.clientY - offset.y })
   }
-
   function onTouchMove(e) {
     if (!dragging) return
     const t = e.touches[0]
@@ -82,19 +82,26 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
   }
 
   async function handleSave() {
-    if (!previewCanvasRef.current) return
+    const canvas = canvasRef.current
+    if (!canvas) return
     setUploading(true)
     try {
-      const blob = await new Promise(res => previewCanvasRef.current.toBlob(res, 'image/png'))
+      const blob = await new Promise((res, rej) => {
+        canvas.toBlob(b => b ? res(b) : rej(new Error('Canvas empty')), 'image/png')
+      })
       const path = `avatars/${userId}_${Date.now()}.png`
       const { error: upErr } = await supabase.storage.from('avatars').upload(path, blob, { contentType: 'image/png' })
       if (upErr) throw upErr
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await supabase.from('profiles').upsert({ id: userId, avatar_url: publicUrl })
-      onUpdate(publicUrl)
+      const urlWithBust = publicUrl + '?t=' + Date.now()
+      await supabase.from('profiles').upsert({ id: userId, avatar_url: urlWithBust })
+      setLocalUrl(urlWithBust)
+      onUpdate(urlWithBust)
       setCropMode(false)
-      setImgSrc(null)
-    } catch (err) { console.error('Upload error:', err) }
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert('Upload failed: ' + err.message)
+    }
     setUploading(false)
   }
 
@@ -103,8 +110,8 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
       <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileSelect} />
 
       <div style={{ position:'relative', cursor:'pointer', width:60, height:60, flexShrink:0 }} onClick={() => fileRef.current.click()}>
-        {currentUrl
-          ? <img src={currentUrl} style={{ width:60, height:60, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)', display:'block' }} onError={e => e.target.style.display='none'} />
+        {localUrl
+          ? <img src={localUrl} style={{ width:60, height:60, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)', display:'block' }} />
           : <div style={{ width:60, height:60, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', fontWeight:700, color:'var(--accent)', border:'2px solid var(--accent)' }}>
               {userId?.[0]?.toUpperCase() || 'U'}
             </div>
@@ -116,14 +123,13 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.9)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
           <div style={{ background:'var(--surface)', borderRadius:'16px', padding:'24px', width:'100%', maxWidth:'320px' }}>
             <h3 style={{ fontSize:'16px', fontWeight:700, marginBottom:'16px', textAlign:'center' }}>Crop your photo</h3>
-
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'16px' }}>
-              <canvas ref={previewCanvasRef}
-                style={{ borderRadius:'50%', cursor: dragging ? 'grabbing' : 'grab', border:'2px solid var(--accent)', display:'block', width:`${CROP_SIZE}px`, height:`${CROP_SIZE}px` }}
+              <canvas ref={canvasRef}
+                style={{ borderRadius:'50%', cursor: dragging ? 'grabbing' : 'grab', border:'3px solid var(--accent)', display:'block' }}
+                width={CROP_SIZE} height={CROP_SIZE}
                 onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
                 onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
             </div>
-
             <div style={{ marginBottom:'16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
                 <label style={{ fontSize:'12px', color:'var(--text2)' }}>Zoom</label>
@@ -131,16 +137,12 @@ export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
               </div>
               <input type="range" min="1" max="4" step="0.05" value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ width:'100%' }} />
             </div>
-
             <p style={{ fontSize:'11px', color:'var(--text3)', textAlign:'center', marginBottom:'16px' }}>Drag to reposition · Slider to zoom</p>
-
             <div style={{ display:'flex', gap:'8px' }}>
               <button className="btn" onClick={handleSave} disabled={uploading} style={{ flex:1, justifyContent:'center' }}>
                 {uploading ? 'Saving...' : 'Save photo'}
               </button>
-              <button className="btn-ghost" onClick={() => { setCropMode(false); setImgSrc(null) }} style={{ flex:1, justifyContent:'center' }}>
-                Cancel
-              </button>
+              <button className="btn-ghost" onClick={() => setCropMode(false)} style={{ flex:1, justifyContent:'center' }}>Cancel</button>
             </div>
           </div>
         </div>
