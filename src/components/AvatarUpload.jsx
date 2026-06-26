@@ -1,128 +1,146 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js'
 
 export default function AvatarUpload({ userId, currentUrl, onUpdate }) {
   const [uploading, setUploading] = useState(false)
   const [cropMode, setCropMode] = useState(false)
   const [imgSrc, setImgSrc] = useState(null)
-  const [cropPos, setCropPos] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [scale, setScale] = useState(1)
   const fileRef = useRef()
-  const canvasRef = useRef()
-  const imgRef = useRef()
+  const previewCanvasRef = useRef()
+  const imgObjRef = useRef(null)
+  const CROP_SIZE = 220
 
   function handleFileSelect(e) {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = ev => {
       setImgSrc(ev.target.result)
+      setZoom(1)
+      setOffset({ x: 0, y: 0 })
       setCropMode(true)
-      setCropPos({ x: 0, y: 0 })
-      setScale(1)
+      const img = new Image()
+      img.onload = () => { imgObjRef.current = img; drawPreview(img, 1, { x: 0, y: 0 }) }
+      img.src = ev.target.result
     }
     reader.readAsDataURL(file)
     e.target.value = ''
   }
 
+  function drawPreview(img, z, off) {
+    const canvas = previewCanvasRef.current
+    if (!canvas || !img) return
+    const ctx = canvas.getContext('2d')
+    canvas.width = CROP_SIZE
+    canvas.height = CROP_SIZE
+    ctx.clearRect(0, 0, CROP_SIZE, CROP_SIZE)
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(CROP_SIZE / 2, CROP_SIZE / 2, CROP_SIZE / 2, 0, Math.PI * 2)
+    ctx.clip()
+    const scale = Math.max(CROP_SIZE / img.width, CROP_SIZE / img.height) * z
+    const w = img.width * scale
+    const h = img.height * scale
+    const x = (CROP_SIZE - w) / 2 + off.x
+    const y = (CROP_SIZE - h) / 2 + off.y
+    ctx.drawImage(img, x, y, w, h)
+    ctx.restore()
+  }
+
+  useEffect(() => {
+    if (imgObjRef.current) drawPreview(imgObjRef.current, zoom, offset)
+  }, [zoom, offset])
+
   function onMouseDown(e) {
+    e.preventDefault()
     setDragging(true)
-    setDragStart({ x: e.clientX - cropPos.x, y: e.clientY - cropPos.y })
+    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y })
   }
 
   function onMouseMove(e) {
     if (!dragging) return
-    setCropPos({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+    const newOff = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }
+    setOffset(newOff)
   }
 
   function onMouseUp() { setDragging(false) }
 
-  async function handleSave() {
-    if (!canvasRef.current || !imgRef.current) return
-    setUploading(true)
-
-    const canvas = canvasRef.current
-    const size = 200
-    canvas.width = size
-    canvas.height = size
-    const ctx = canvas.getContext('2d')
-
-    ctx.beginPath()
-    ctx.arc(size/2, size/2, size/2, 0, Math.PI*2)
-    ctx.clip()
-
-    const img = imgRef.current
-    const displaySize = 160
-    const imgW = img.naturalWidth * scale * (displaySize / Math.max(img.naturalWidth, img.naturalHeight))
-    const imgH = img.naturalHeight * scale * (displaySize / Math.max(img.naturalWidth, img.naturalHeight))
-    const sx = (cropPos.x / displaySize) * img.naturalWidth / scale
-    const sy = (cropPos.y / displaySize) * img.naturalHeight / scale
-
-    ctx.drawImage(img, -cropPos.x * (img.naturalWidth / imgW), -cropPos.y * (img.naturalHeight / imgH),
-      img.naturalWidth / scale * (size / displaySize) * scale,
-      img.naturalHeight / scale * (size / displaySize) * scale)
-
-    canvas.toBlob(async (blob) => {
-      try {
-        const path = `avatars/${userId}.png`
-        await supabase.storage.from('avatars').upload(path, blob, { upsert: true, contentType: 'image/png' })
-        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-        await supabase.from('profiles').upsert({ id: userId, avatar_url: publicUrl + '?t=' + Date.now() })
-        onUpdate(publicUrl + '?t=' + Date.now())
-        setCropMode(false)
-        setImgSrc(null)
-      } catch (err) { console.error(err) }
-      setUploading(false)
-    }, 'image/png')
+  function onTouchStart(e) {
+    const t = e.touches[0]
+    setDragging(true)
+    setDragStart({ x: t.clientX - offset.x, y: t.clientY - offset.y })
   }
 
-  function handleCancel() {
-    setCropMode(false)
-    setImgSrc(null)
+  function onTouchMove(e) {
+    if (!dragging) return
+    const t = e.touches[0]
+    setOffset({ x: t.clientX - dragStart.x, y: t.clientY - dragStart.y })
+  }
+
+  async function handleSave() {
+    if (!previewCanvasRef.current) return
+    setUploading(true)
+    try {
+      const blob = await new Promise(res => previewCanvasRef.current.toBlob(res, 'image/png'))
+      const path = `avatars/${userId}_${Date.now()}.png`
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, blob, { contentType: 'image/png' })
+      if (upErr) throw upErr
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      await supabase.from('profiles').upsert({ id: userId, avatar_url: publicUrl })
+      onUpdate(publicUrl)
+      setCropMode(false)
+      setImgSrc(null)
+    } catch (err) { console.error('Upload error:', err) }
+    setUploading(false)
   }
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ display:'none' }} />
       <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileSelect} />
 
-      {/* Avatar display */}
       <div style={{ position:'relative', cursor:'pointer', width:60, height:60, flexShrink:0 }} onClick={() => fileRef.current.click()}>
         {currentUrl
-          ? <img src={currentUrl} style={{ width:60, height:60, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)', display:'block' }} />
-          : <div style={{ width:60, height:60, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', fontWeight:700, color:'var(--accent)', border:'2px solid var(--accent)' }}>K</div>
+          ? <img src={currentUrl} style={{ width:60, height:60, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)', display:'block' }} onError={e => e.target.style.display='none'} />
+          : <div style={{ width:60, height:60, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', fontWeight:700, color:'var(--accent)', border:'2px solid var(--accent)' }}>
+              {userId?.[0]?.toUpperCase() || 'U'}
+            </div>
         }
         <div style={{ position:'absolute', bottom:0, right:0, background:'var(--accent)', borderRadius:'50%', width:20, height:20, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px' }}>📷</div>
       </div>
 
-      {/* Crop modal */}
-      {cropMode && imgSrc && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-          <div style={{ background:'var(--surface)', borderRadius:'16px', padding:'24px', maxWidth:'380px', width:'100%' }}>
-            <h3 style={{ fontSize:'16px', fontWeight:700, marginBottom:'16px' }}>Crop your photo</h3>
+      {cropMode && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.9)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+          <div style={{ background:'var(--surface)', borderRadius:'16px', padding:'24px', width:'100%', maxWidth:'320px' }}>
+            <h3 style={{ fontSize:'16px', fontWeight:700, marginBottom:'16px', textAlign:'center' }}>Crop your photo</h3>
 
-            {/* Crop area */}
-            <div style={{ position:'relative', width:'200px', height:'200px', margin:'0 auto 16px', borderRadius:'50%', overflow:'hidden', border:'2px solid var(--accent)', cursor:'move', background:'var(--surface2)' }}
-              onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
-              <img ref={imgRef} src={imgSrc} draggable={false}
-                style={{ position:'absolute', transform:`translate(${cropPos.x}px, ${cropPos.y}px) scale(${scale})`, transformOrigin:'center', maxWidth:'none', height:'200px', userSelect:'none', pointerEvents:'none' }} />
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:'16px' }}>
+              <canvas ref={previewCanvasRef}
+                style={{ borderRadius:'50%', cursor: dragging ? 'grabbing' : 'grab', border:'2px solid var(--accent)', display:'block', width:`${CROP_SIZE}px`, height:`${CROP_SIZE}px` }}
+                onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+                onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
             </div>
 
-            {/* Zoom */}
             <div style={{ marginBottom:'16px' }}>
-              <label style={{ fontSize:'12px', color:'var(--text2)', display:'block', marginBottom:'6px' }}>Zoom</label>
-              <input type="range" min="0.5" max="3" step="0.05" value={scale} onChange={e => setScale(parseFloat(e.target.value))} style={{ width:'100%' }} />
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
+                <label style={{ fontSize:'12px', color:'var(--text2)' }}>Zoom</label>
+                <span style={{ fontSize:'12px', color:'var(--text3)' }}>{Math.round(zoom * 100)}%</span>
+              </div>
+              <input type="range" min="1" max="4" step="0.05" value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ width:'100%' }} />
             </div>
 
-            <p style={{ fontSize:'12px', color:'var(--text3)', marginBottom:'16px' }}>Drag the image to reposition. Use the slider to zoom.</p>
+            <p style={{ fontSize:'11px', color:'var(--text3)', textAlign:'center', marginBottom:'16px' }}>Drag to reposition · Slider to zoom</p>
 
             <div style={{ display:'flex', gap:'8px' }}>
               <button className="btn" onClick={handleSave} disabled={uploading} style={{ flex:1, justifyContent:'center' }}>
                 {uploading ? 'Saving...' : 'Save photo'}
               </button>
-              <button className="btn-ghost" onClick={handleCancel} style={{ flex:1, justifyContent:'center' }}>Cancel</button>
+              <button className="btn-ghost" onClick={() => { setCropMode(false); setImgSrc(null) }} style={{ flex:1, justifyContent:'center' }}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>
