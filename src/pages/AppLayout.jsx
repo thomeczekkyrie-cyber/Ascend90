@@ -31,7 +31,7 @@ export default function AppLayout() {
     <div style={{ display:'flex', minHeight:'100vh' }}>
       <aside style={{ width:'220px', background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', position:'fixed', top:0, left:0, bottom:0, zIndex:50, overflowY:'auto' }} className="sidebar">
         <div style={{ padding:'20px 16px 16px', borderBottom:'1px solid var(--border)' }}>
-          <img src="/logo.png" alt="Ascend90" style={{ height:'36px', objectFit:'contain', maxWidth:'160px' }} />
+          <img src="/logo.png" alt="Ascend90" style={{ height:'52px', objectFit:'contain', maxWidth:'190px' }} />
           <div style={{ fontSize:'12px', color:'var(--text3)', marginTop:'4px' }}>{user?.user_metadata?.full_name || user?.email}</div>
           {isPremium && <span className="badge badge-accent" style={{ marginTop:'6px', display:'inline-block' }}>Premium</span>}
         </div>
