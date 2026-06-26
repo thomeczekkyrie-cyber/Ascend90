@@ -45,7 +45,7 @@ export default function PricingPage() {
             <div style={{ position:'absolute', top:'-13px', left:'50%', transform:'translateX(-50%)', background:'var(--accent)', color:'#fff', fontSize:'11px', fontWeight:700, padding:'4px 14px', borderRadius:'20px', whiteSpace:'nowrap', letterSpacing:'0.8px', textTransform:'uppercase' }}>Most popular</div>
             <div style={{ fontSize:'13px', fontWeight:700, color:'var(--accent)', textTransform:'uppercase', letterSpacing:'1px', marginBottom:'8px' }}>Premium</div>
             <div style={{ display:'flex', alignItems:'baseline', gap:'4px', marginBottom:'4px' }}>
-              $15</span>
+              <span style={{ fontSize:'40px', fontWeight:800, letterSpacing:'-1px' }}>$15</span>
               <span style={{ color:'var(--text3)', fontSize:'14px' }}>/month</span>
             </div>
             <div style={{ color:'var(--text3)', fontSize:'13px', marginBottom:'24px' }}>or $59/year — save 38%</div>
