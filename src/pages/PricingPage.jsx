@@ -11,7 +11,7 @@ export default function PricingPage() {
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)', padding:'0 24px 80px' }}>
       <nav style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 8px', height:'64px', maxWidth:'900px', margin:'0 auto' }}>
-        <Link to="/" style={{ fontSize:'18px', fontWeight:800, color:'var(--accent)', textDecoration:'none' }}>⚡ Ascend90</Link>
+        <Link to="/"><img src="/logo.png" alt="Ascend90" style={{ height:'40px', objectFit:'contain' }} /></Link>
         <div style={{ display:'flex', gap:'10px' }}>
           {user ? <button className="btn btn-sm" onClick={() => navigate('/app')}>Go to app</button>
             : <button className="btn btn-sm" onClick={() => navigate('/auth?mode=signup')}>Start free</button>}

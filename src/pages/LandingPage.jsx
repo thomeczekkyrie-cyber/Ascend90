@@ -26,7 +26,7 @@ export default function LandingPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* NAV */}
       <nav style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 32px', height:'64px', borderBottom:'1px solid var(--border)', position:'sticky', top:0, background:'var(--bg)', zIndex:100 }}>
-        <div style={{ fontSize:'18px', fontWeight:800, color:'var(--accent)', letterSpacing:'-0.5px' }}>⚡ Ascend90</div>
+        <img src="/logo.png" alt="Ascend90" style={{ height:'40px', objectFit:'contain' }} />
         <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
           <button className="btn-ghost btn-sm" onClick={() => navigate('/pricing')}>Pricing</button>
           {user
