@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { signOut } from '../lib/supabase.js'
 import { useNavigate } from 'react-router-dom'
 import { THEMES, saveTheme, loadTheme } from '../lib/theme.js'
+import AvatarUpload from '../components/AvatarUpload.jsx'
 
 const SUPPORT_EMAIL = 'support@ascend-90.com'
 
@@ -20,8 +21,6 @@ export default function AccountPage() {
   const [birthday, setBirthday] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [photoUrl, setPhotoUrl] = useState(null)
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
-  const fileRef = useRef()
 
   useEffect(() => {
     loadProfile()
@@ -51,25 +50,8 @@ export default function AccountPage() {
     setSavingProfile(true)
     await supabase.from('profiles').upsert({ id: user.id, birthday: birthday || null })
     setSavingProfile(false)
-    setMsg('Profile saved!')
-    setMsgType('success')
+    setMsg('Profile saved!'); setMsgType('success')
     setTimeout(() => setMsg(''), 2000)
-  }
-
-  async function handlePhotoUpload(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setUploadingPhoto(true)
-    try {
-      const ext = file.name.split('.').pop()
-      const path = `avatars/${user.id}.${ext}`
-      await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl })
-      setPhotoUrl(publicUrl)
-    } catch (err) { console.error(err) }
-    setUploadingPhoto(false)
-    e.target.value = ''
   }
 
   async function handleUpgrade() {
@@ -126,27 +108,15 @@ export default function AccountPage() {
       <div className="card">
         <p className="card-title">Profile</p>
         <div style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'16px' }}>
-          <div style={{ position:'relative', cursor:'pointer' }} onClick={() => fileRef.current.click()}>
-            {photoUrl
-              ? <img src={photoUrl} style={{ width:60, height:60, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)' }} />
-              : <div style={{ width:60, height:60, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', fontWeight:700, color:'var(--accent)', border:'2px solid var(--accent)' }}>
-                  {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
-                </div>
-            }
-            <div style={{ position:'absolute', bottom:0, right:0, background:'var(--accent)', borderRadius:'50%', width:20, height:20, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'10px' }}>📷</div>
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoUpload} />
+          <AvatarUpload userId={user.id} currentUrl={photoUrl} onUpdate={setPhotoUrl} />
           <div>
             <div style={{ fontWeight:600, fontSize:'15px' }}>{user?.user_metadata?.full_name || 'User'}</div>
             <div style={{ fontSize:'13px', color:'var(--text2)' }}>{user?.email}</div>
-            <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'2px', cursor:'pointer' }} onClick={() => fileRef.current.click()}>
-              {uploadingPhoto ? 'Uploading...' : 'Tap photo to change'}
-            </div>
+            <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'2px' }}>Tap photo to change</div>
           </div>
         </div>
-
         <div className="form-row">
-          <label className="form-label">Birthday (optional — for surprise on your special day 🎂)</label>
+          <label className="form-label">Birthday (optional — for a surprise on your special day 🎂)</label>
           <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} style={{ width:'auto' }} />
         </div>
         <div style={{ display:'flex', gap:'8px' }}>
@@ -155,10 +125,10 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* Theme picker */}
+      {/* Theme */}
       <div className="card">
         <p className="card-title">App theme</p>
-        <p style={{ fontSize:'13px', color:'var(--text2)', marginBottom:'14px' }}>Pick your accent color. It applies instantly across the whole app.</p>
+        <p style={{ fontSize:'13px', color:'var(--text2)', marginBottom:'14px' }}>Pick your accent color — applies instantly across the whole app.</p>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'8px' }}>
           {THEMES.map(t => (
             <button key={t.id} onClick={() => handleTheme(t.id)}
@@ -189,8 +159,8 @@ export default function AccountPage() {
             <div style={{ background:'var(--surface2)', borderRadius:'12px', padding:'14px', marginBottom:'16px', fontSize:'13px', color:'var(--text2)', lineHeight:1.8 }}>
               <div>✓ Unlimited habits, goals, and tasks</div>
               <div>✓ Daily journal with mood tracking</div>
-              <div>✓ Progress photos & measurements</div>
-              <div>✓ AI meal plans & workout generator</div>
+              <div>✓ Progress photos and measurements</div>
+              <div>✓ AI workout generator</div>
               <div>✓ All future features included</div>
             </div>
             {isCancelled ? (
@@ -221,7 +191,7 @@ export default function AccountPage() {
             <div style={{ display:'flex', alignItems:'flex-start', gap:'16px', background:'var(--surface2)', borderRadius:'12px', padding:'16px', marginBottom:'16px' }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontWeight:700, fontSize:'15px', marginBottom:'6px' }}>Upgrade to Premium</div>
-                <div style={{ fontSize:'13px', color:'var(--text2)', lineHeight:1.6 }}>Unlimited everything. AI meal plans. Workout generator. Progress photos. All future features.</div>
+                <div style={{ fontSize:'13px', color:'var(--text2)', lineHeight:1.6 }}>Unlimited everything. AI workout generator. Progress photos. All future features.</div>
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 <div style={{ fontSize:'28px', fontWeight:800, color:'var(--accent)' }}>$15</div>
