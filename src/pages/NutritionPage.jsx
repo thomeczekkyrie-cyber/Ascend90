@@ -5,7 +5,8 @@ export default function NutritionPage() {
   const [restrictions, setRestrictions] = useState([])
   const [meals, setMeals] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('meals')
+  const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('breakfasts')
   const [expandedMeal, setExpandedMeal] = useState(null)
 
   const GOALS = ['Lose weight', 'Build muscle', 'Maintain weight', 'Eat cleaner', 'Increase energy']
@@ -19,40 +20,19 @@ export default function NutritionPage() {
 
   async function generate() {
     if (!goal) return
-    setLoading(true); setMeals(null)
+    setLoading(true); setMeals(null); setError('')
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai-generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': '', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 4000,
-          system: `You are a certified nutritionist. Return ONLY valid JSON, no markdown, no explanation.`,
-          messages: [{
-            role: 'user',
-            content: `Generate a meal plan for someone with goal: "${goal}" and dietary restrictions: "${restrictions.join(', ') || 'None'}".
-
-Return this exact JSON structure:
-{
-  "breakfasts": [
-    { "name": "", "description": "", "calories": 0, "protein": 0, "carbs": 0, "fat": 0, "recipe": ["step1", "step2"] }
-  ],
-  "lunches": [...same 5 items...],
-  "dinners": [...same 5 items...],
-  "snacks": [
-    { "name": "", "description": "", "calories": 0, "protein": 0, "carbs": 0, "fat": 0 }
-  ]
-}
-
-Include 5 breakfasts, 5 lunches, 5 dinners, 10 snacks. Make them realistic, delicious, and aligned with the goal. Include macros for each.`
-          }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'meals', goal, restrictions: restrictions.join(', ') })
       })
-      const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      const clean = text.replace(/```json|```/g, '').trim()
-      setMeals(JSON.parse(clean))
-    } catch (err) { console.error(err) }
+      const json = await res.json()
+      if (json.error) { setError('Could not generate meal plan. Try again.'); setLoading(false); return }
+      setMeals(json.data)
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
+    }
     setLoading(false)
   }
 
@@ -134,9 +114,11 @@ Include 5 breakfasts, 5 lunches, 5 dinners, 10 snacks. Make them realistic, deli
             ))}
           </div>
         </div>
-        <button className="btn" onClick={generate} disabled={!goal || loading} style={{ marginTop:'4px' }}>
+        {error && <div style={{ background:'var(--red-soft)', borderRadius:'8px', padding:'10px', color:'var(--red)', fontSize:'13px', marginBottom:'12px' }}>{error}</div>}
+        <button className="btn" onClick={generate} disabled={!goal || loading}>
           {loading ? '🤖 Generating your meal plan...' : '✨ Generate meal ideas'}
         </button>
+        {loading && <p style={{ fontSize:'12px', color:'var(--text3)', marginTop:'8px' }}>This takes about 15 seconds — hang tight!</p>}
       </div>
 
       {meals && (
@@ -152,6 +134,9 @@ Include 5 breakfasts, 5 lunches, 5 dinners, 10 snacks. Make them realistic, deli
           {tabs.find(t => t.id === activeTab)?.items?.map((item, i) => (
             <MealCard key={i} item={item} idx={i} />
           ))}
+          <button className="btn-ghost" style={{ width:'100%', justifyContent:'center', marginTop:'8px' }} onClick={generate}>
+            🔄 Generate new ideas
+          </button>
         </div>
       )}
     </div>

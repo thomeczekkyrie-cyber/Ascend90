@@ -16,36 +16,36 @@ const MUSCLE_GROUPS = {
     { name: 'Seated Cable Row', sets: '3x12', desc: 'Targets mid back for thickness.', tips: 'Keep back straight, pull to belly button' },
   ]},
   shoulders: { label: 'Shoulders', color: '#f5a623', exercises: [
-    { name: 'Overhead Press', sets: '4x10', desc: 'Compound movement for all three delt heads.', tips: 'Press straight up, don\'t flare elbows' },
+    { name: 'Overhead Press', sets: '4x10', desc: 'Compound movement for all three delt heads.', tips: "Press straight up, don't flare elbows" },
     { name: 'Lateral Raises', sets: '3x15', desc: 'Isolation for side delts for that wide look.', tips: 'Lead with elbows, stop at shoulder height' },
-    { name: 'Front Raises', sets: '3x12', desc: 'Targets front delts for shoulder definition.', tips: 'Control the descent, don\'t swing' },
+    { name: 'Front Raises', sets: '3x12', desc: 'Targets front delts for shoulder definition.', tips: 'Control the descent, no swinging' },
     { name: 'Arnold Press', sets: '3x10', desc: 'Rotational press that hits all delt heads.', tips: 'Start with palms facing you, rotate as you press' },
     { name: 'Rear Delt Flyes', sets: '3x15', desc: 'Often neglected but crucial for balanced shoulders.', tips: 'Hinge at hips, squeeze shoulder blades' },
   ]},
   arms: { label: 'Arms', color: '#22c97a', exercises: [
     { name: 'Bicep Curls', sets: '3x12', desc: 'Foundation of bicep building.', tips: 'Keep elbows fixed, full range of motion' },
     { name: 'Hammer Curls', sets: '3x12', desc: 'Builds brachialis for thicker arms.', tips: 'Neutral grip, controlled movement' },
-    { name: 'Tricep Dips', sets: '3x15', desc: 'Bodyweight tricep mass builder.', tips: 'Lower until elbows at 90°, push through palms' },
+    { name: 'Tricep Dips', sets: '3x15', desc: 'Bodyweight tricep mass builder.', tips: 'Lower until elbows at 90 degrees, push through palms' },
     { name: 'Skull Crushers', sets: '3x12', desc: 'Isolation for long tricep head.', tips: 'Keep upper arms still, lower to forehead' },
     { name: 'Concentration Curls', sets: '3x10', desc: 'Peak bicep contraction for definition.', tips: 'Elbow on inner thigh, twist at top' },
   ]},
   core: { label: 'Core', color: '#7c5cfc', exercises: [
     { name: 'Plank', sets: '3x60s', desc: 'Full core stabilization exercise.', tips: 'Straight line from head to heels, breathe' },
-    { name: 'Crunches', sets: '3x20', desc: 'Classic upper ab movement.', tips: 'Exhale as you crunch, don\'t pull neck' },
+    { name: 'Crunches', sets: '3x20', desc: 'Classic upper ab movement.', tips: 'Exhale as you crunch, do not pull neck' },
     { name: 'Russian Twists', sets: '3x20', desc: 'Oblique strengthener for rotational power.', tips: 'Feet off floor for more challenge' },
-    { name: 'Leg Raises', sets: '3x15', desc: 'Lower ab focus exercise.', tips: 'Control the descent, don\'t let feet touch floor' },
+    { name: 'Leg Raises', sets: '3x15', desc: 'Lower ab focus exercise.', tips: 'Control the descent, do not let feet touch floor' },
     { name: 'Mountain Climbers', sets: '3x30s', desc: 'Dynamic core exercise with cardio benefit.', tips: 'Keep hips low, drive knees to chest' },
   ]},
   legs: { label: 'Legs', color: '#f06292', exercises: [
     { name: 'Squats', sets: '4x12', desc: 'King of leg exercises. Builds quads, glutes, and hamstrings.', tips: 'Knees track over toes, depth below parallel' },
-    { name: 'Lunges', sets: '3x12ea', desc: 'Unilateral movement for leg balance.', tips: 'Front knee doesn\'t pass toes, upright torso' },
+    { name: 'Lunges', sets: '3x12ea', desc: 'Unilateral movement for leg balance.', tips: 'Front knee does not pass toes, upright torso' },
     { name: 'Romanian Deadlift', sets: '4x10', desc: 'Hamstring and glute focus with hip hinge.', tips: 'Hinge at hips, feel hamstring stretch' },
     { name: 'Calf Raises', sets: '4x20', desc: 'Often neglected calf builder.', tips: 'Full range, hold at top, slow descent' },
     { name: 'Wall Sit', sets: '3x60s', desc: 'Isometric quad burner.', tips: 'Thighs parallel to floor, back flat on wall' },
   ]},
   glutes: { label: 'Glutes', color: '#fbbf24', exercises: [
     { name: 'Hip Thrusts', sets: '4x12', desc: 'Best glute activation exercise.', tips: 'Shoulders on bench, squeeze at top' },
-    { name: 'Glute Bridges', sets: '3x20', desc: 'Bodyweight hip thrust variation.', tips: 'Squeeze glutes, don\'t use lower back' },
+    { name: 'Glute Bridges', sets: '3x20', desc: 'Bodyweight hip thrust variation.', tips: 'Squeeze glutes, do not use lower back' },
     { name: 'Donkey Kicks', sets: '3x15ea', desc: 'Isolation for glute max.', tips: 'Keep hips square, squeeze at top' },
     { name: 'Sumo Squats', sets: '3x15', desc: 'Wide stance shifts focus to inner thighs and glutes.', tips: 'Toes pointed out, knees tracking toes' },
     { name: 'Step-ups', sets: '3x12ea', desc: 'Functional glute and quad builder.', tips: 'Drive through heel of elevated foot' },
@@ -53,15 +53,15 @@ const MUSCLE_GROUPS = {
 }
 
 const BODY_PARTS = [
-  { id:'shoulders', cx:200, cy:100, rx:22, ry:14, label:'Shoulders' },
-  { id:'chest', cx:200, cy:148, rx:30, ry:22, label:'Chest' },
-  { id:'arms', cx:154, cy:155, rx:14, ry:30, label:'Arms' },
-  { id:'arms', cx:246, cy:155, rx:14, ry:30, label:'Arms' },
-  { id:'core', cx:200, cy:200, rx:22, ry:28, label:'Core' },
-  { id:'back', cx:200, cy:330, rx:30, ry:22, label:'Back' },
-  { id:'glutes', cx:200, cy:368, rx:24, ry:18, label:'Glutes' },
-  { id:'legs', cx:185, cy:430, rx:18, ry:40, label:'Legs' },
-  { id:'legs', cx:215, cy:430, rx:18, ry:40, label:'Legs' },
+  { id:'shoulders', cx:200, cy:100, rx:22, ry:14 },
+  { id:'chest', cx:200, cy:148, rx:30, ry:22 },
+  { id:'arms', cx:154, cy:155, rx:14, ry:30 },
+  { id:'arms', cx:246, cy:155, rx:14, ry:30 },
+  { id:'core', cx:200, cy:200, rx:22, ry:28 },
+  { id:'back', cx:200, cy:330, rx:30, ry:22 },
+  { id:'glutes', cx:200, cy:368, rx:24, ry:18 },
+  { id:'legs', cx:185, cy:430, rx:18, ry:40 },
+  { id:'legs', cx:215, cy:430, rx:18, ry:40 },
 ]
 
 export default function ExercisePage() {
@@ -78,36 +78,13 @@ export default function ExercisePage() {
   async function generatePlan() {
     setAiLoading(true); setAiPlan(null)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai-generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': '', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 3000,
-          system: 'You are a certified personal trainer. Return ONLY valid JSON, no markdown.',
-          messages: [{
-            role: 'user',
-            content: `Create a ${daysPerWeek}-day per week workout plan for a ${level}. 
-Return this JSON:
-{
-  "days": [
-    {
-      "day": "Day 1",
-      "focus": "muscle group focus",
-      "exercises": [
-        { "name": "", "sets": "", "reps": "", "rest": "", "notes": "" }
-      ]
-    }
-  ],
-  "tips": ["tip1", "tip2", "tip3"]
-}
-Make it realistic, progressive, and effective for the level.`
-          }]
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'workout', level, daysPerWeek })
       })
-      const data = await res.json()
-      const text = data.content?.[0]?.text || ''
-      setAiPlan(JSON.parse(text.replace(/```json|```/g, '').trim()))
+      const json = await res.json()
+      if (json.data) setAiPlan(json.data)
     } catch (err) { console.error(err) }
     setAiLoading(false)
   }
@@ -117,12 +94,10 @@ Make it realistic, progressive, and effective for the level.`
       <div className="page-header"><h1>Exercise library</h1><p>Tap a muscle group to explore exercises. Generate a full AI workout plan below.</p></div>
 
       <div style={{ display:'flex', gap:'20px', flexWrap:'wrap', alignItems:'flex-start' }}>
-        {/* Body map */}
         <div style={{ flex:'0 0 260px' }}>
           <div className="card" style={{ padding:'12px' }}>
             <p className="card-title" style={{ marginBottom:'8px' }}>Tap a muscle group</p>
             <svg viewBox="0 0 400 520" style={{ width:'100%' }}>
-              {/* Body outline front */}
               <ellipse cx="200" cy="72" rx="32" ry="38" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
               <rect x="162" y="108" width="76" height="110" rx="10" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
               <rect x="134" y="115" width="32" height="90" rx="10" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
@@ -131,8 +106,6 @@ Make it realistic, progressive, and effective for the level.`
               <rect x="202" y="215" width="30" height="100" rx="8" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
               <rect x="170" y="312" width="26" height="90" rx="8" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
               <rect x="204" y="312" width="26" height="90" rx="8" fill="#2a2a32" stroke="var(--border2)" strokeWidth="1.5"/>
-
-              {/* Clickable muscle zones */}
               {Object.entries(MUSCLE_GROUPS).map(([id, g]) => {
                 const parts = BODY_PARTS.filter(p => p.id === id)
                 return parts.map((p, i) => (
@@ -145,8 +118,6 @@ Make it realistic, progressive, and effective for the level.`
                   />
                 ))
               })}
-
-              {/* Labels */}
               {Object.entries(MUSCLE_GROUPS).map(([id, g]) => {
                 const parts = BODY_PARTS.filter(p => p.id === id)
                 const first = parts[0]
@@ -159,7 +130,6 @@ Make it realistic, progressive, and effective for the level.`
                 )
               })}
             </svg>
-
             <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'8px' }}>
               {Object.entries(MUSCLE_GROUPS).map(([id, g]) => (
                 <button key={id} onClick={() => setSelected(selected === id ? null : id)}
@@ -172,13 +142,12 @@ Make it realistic, progressive, and effective for the level.`
           </div>
         </div>
 
-        {/* Exercise list */}
         <div style={{ flex:1, minWidth:'280px' }}>
           {!selected ? (
             <div className="card" style={{ textAlign:'center', padding:'40px 20px' }}>
               <div style={{ fontSize:'36px', marginBottom:'12px' }}>👆</div>
               <div style={{ fontSize:'15px', fontWeight:600, marginBottom:'6px' }}>Select a muscle group</div>
-              <div style={{ fontSize:'13px', color:'var(--text2)' }}>Tap on the body map or use the buttons to explore exercises for each muscle group.</div>
+              <div style={{ fontSize:'13px', color:'var(--text2)' }}>Tap the body map or use the buttons to explore exercises.</div>
             </div>
           ) : (
             <div>
@@ -188,7 +157,7 @@ Make it realistic, progressive, and effective for the level.`
                 <span style={{ fontSize:'13px', color:'var(--text3)' }}>{selectedGroup.exercises.length} exercises</span>
               </div>
               {selectedGroup.exercises.map((ex, i) => (
-                <div key={i} style={{ background:'var(--surface)', border:`1px solid ${expandedEx===`${selected}-${i}` ? selectedGroup.color : 'var(--border)'}`, borderRadius:'12px', padding:'14px', marginBottom:'8px', transition:'border-color 0.15s', cursor:'pointer' }}
+                <div key={i} style={{ background:'var(--surface)', border:`1px solid ${expandedEx===`${selected}-${i}` ? selectedGroup.color : 'var(--border)'}`, borderRadius:'12px', padding:'14px', marginBottom:'8px', cursor:'pointer' }}
                   onClick={() => setExpandedEx(expandedEx===`${selected}-${i}` ? null : `${selected}-${i}`)}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div style={{ fontWeight:600, fontSize:'14px' }}>{ex.name}</div>
@@ -210,7 +179,6 @@ Make it realistic, progressive, and effective for the level.`
         </div>
       </div>
 
-      {/* AI Workout Generator */}
       <div className="card" style={{ marginTop:'8px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: showAI ? '16px' : 0 }}>
           <div>
@@ -241,6 +209,7 @@ Make it realistic, progressive, and effective for the level.`
             <button className="btn" onClick={generatePlan} disabled={aiLoading}>
               {aiLoading ? '🤖 Building your plan...' : '✨ Generate my workout plan'}
             </button>
+            {aiLoading && <p style={{ fontSize:'12px', color:'var(--text3)', marginTop:'8px' }}>Takes about 15 seconds — almost there!</p>}
 
             {aiPlan && (
               <div style={{ marginTop:'20px' }}>
